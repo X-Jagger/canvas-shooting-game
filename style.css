@@ -1,0 +1,32 @@
+* { 
+  padding:0; 
+  margin: 0;
+}
+
+html,body{
+  height: 100%;
+  width: 100%;
+}
+body {
+  background-image: url(./img/bgi.jpg)
+}
+h1{
+  text-align: center; 
+}
+canvas{
+  position: absolute;
+  
+  display: block;
+  border:1px solid silver;
+}
+#canvas0 {
+  z-index:-10;
+}
+#game {
+  width: 700px;
+  height: 600px;
+  margin:0 auto;
+  position:relative;
+}
+
+
