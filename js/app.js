@@ -1,16 +1,12 @@
 window.requestAnimFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
 	function(a) {
-		window.setTimeout(a, 1000 / 60)
+		window.setTimeout(a, 1000 / 30)
 	};
 
 
-var canvas0 = document.getElementById('canvas0');
-var ctx0 = canvas0.getContext('2d');
-var canvas1 = document.getElementById('canvas1');
-var ctx1 = canvas1.getContext('2d');
-var _canvasBuffer = document.createElement('canvas');
-var _canvasBuffer.setAttribute('width', canvas1.width);
-// var _canvasBuffer.setAttribute('height', canvas1.height);
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+// var _canvasBuffer.setAttribute('height', canvas.height);
 // var _canvasBufferContext = _canvasBuffer.getContext('2d');
 
 /*
@@ -38,107 +34,108 @@ var w = 50;
 var h = 50;
 var step = 30;
 var steps = 15;
-//var bullet = new Bullet();
+var bullets = [];
+var plane
+	//var bullet = new Bullet();
 var clearShoot;
 var interval = 100;
-ctx0.fillStyle = "rgb(200,0,0)";
+ctx.fillStyle = "rgb(200,0,0)";
 
-ctx0.beginPath();
-ctx0.fillRect(x, y, w, h);
-ctx1.lineWidth = 5;
+ctx.beginPath();
+ctx.fillRect(x, y, w, h);
+ctx.lineWidth = 2;
 
 function Bullet() {
 	this.x = x;
 	this.y = y;
+	this.size = 10;
 }
 
-function keyBoardUp(e) {
-	console.log("hello", e.keyCode);
-	//37-40 左上右下
-	if (e.keyCode == 37) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
-		x -= step;
-		ctx0.fillRect(x, y, w, h);
-	}
-	if (e.keyCode == 38) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
-		y -= step;
-		ctx0.fillRect(x, y, w, h);
-	}
-	if (e.keyCode == 39) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
-		x += step;
-		ctx0.fillRect(x, y, w, h);
-	}
-	if (e.keyCode == 40) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
-		y += step;
-		ctx0.fillRect(x, y, w, h);
-	}
-	if (e.keyCode == 32) {
-		var bullet = new Bullet();
-		bullet.clearShoot = setInterval(() => shoot(bullet), interval);
+Bullet.prototype.fly = function() {
+	this.x += 0;
+	this.y -= 10;
+	return this;
+}
+
+Bullet.prototype.draw = function() {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.beginPath();
+	ctx.strokeStyle = '#fff';
+	ctx.moveTo(this.x + w / 2, this.y);
+	ctx.lineTo(this.x + w / 2, this.y - this.size);
+	ctx.stroke();
+	return this;
+}
+
+function Plane() {
+	this.x = x;
+	this.y = y;
+}
+
+Plane.prototype.fly() {
+
+}
+Plane.prototype.draw() {
+
+}
+
+keyBoard.prototype = {
+	pressedLeft: false,
+	pressedRight: false,
+	pressedUp: false,
+	pressedSpace: false,
+	keydown: function() {
+
 	}
 }
 
+function keyBoard(e) {
 
-function keyBoardDown(e) {
+
+
 	if (e.keyCode == 37) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.beginPath();
 		x -= steps;
-		ctx0.fillRect(x, y, w, h);
+		ctx.fillRect(x, y, w, h);
 	}
 	if (e.keyCode == 38) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.beginPath();
 		y -= steps;
-		ctx0.fillRect(x, y, w, h);
+		ctx.fillRect(x, y, w, h);
 	}
 	if (e.keyCode == 39) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.beginPath();
 		x += steps;
-		ctx0.fillRect(x, y, w, h);
+		ctx.fillRect(x, y, w, h);
 	}
 	if (e.keyCode == 40) {
-		ctx0.clearRect(0, 0, canvas0.width, canvas0.height);
-		ctx0.beginPath();
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.beginPath();
 		y += steps;
-		ctx0.fillRect(x, y, w, h);
+		ctx.fillRect(x, y, w, h);
 	}
 	if (e.keyCode == 32) {
 		var bullet = new Bullet();
-		bullet.clearShoot = setInterval(() => shoot(bullet), interval);
+		//console.log(bullet)
+		bullets.push(bullet);
+		console.log(bullets);
 	}
 }
 
-function shoot(bullet) {
-	return function() {
-
-		_canvasBufferContext.clearRect(0, 0, canvas0.width, canvas0.height);
-		_canvasBufferContext.beginPath();
-		bullet.y -= 5;
-		_canvasBufferContext.moveTo(bullet.x + w / 2, bullet.y);
-		bullet.y -= 10;
-		_canvasBufferContext.lineTo(bullet.x + w / 2, bullet.y);
-		_canvasBufferContext.stroke();
-		if (bullet.y < -10) {
-			bullet.y = y;
-			clearInterval(bullet.clearShoot);
-		};
-	}()
-
-	//console.log(bullet.y);
-
-
+function update() {
+	var len = bullets.length;
+	while (len--) {
+		var b = bullets[len];
+		b.fly();
+		if (b.y <= 0) bullets.splice(len, 1);
+		b.draw();
+	}
+	requestAnimFrame(function() {
+		update()
+	})
 }
-
-// document.addEventListener('keyup', keyBoardUp)
-// document.addEventListener('keydown', keyBoardDown)
-//window.onkeyup = keyBoardUp;
-window.onkeydown = keyBoardDown
+update();
+window.onkeydown = keyBoard
