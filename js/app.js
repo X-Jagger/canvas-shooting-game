@@ -9,8 +9,9 @@ var ctx = canvas.getContext('2d');
 
 var x = 325;
 var y = 525;
-var w = 50;
-var h = 50;
+var w = 100;
+var h = 100;
+var speed = 5
 var bullets = [];
 var monsters = [];
 var monstersNumber = 7;
@@ -36,11 +37,11 @@ Bullet.prototype.fly = function() {
 }
 
 Bullet.prototype.draw = function() {
-
 	ctx.beginPath();
 	ctx.strokeStyle = '#fff';
-	ctx.moveTo(this.x + w / 2, this.y);
-	ctx.lineTo(this.x + w / 2, this.y - this.size);
+
+	ctx.moveTo(this.x, this.y);
+	ctx.lineTo(this.x, this.y - this.size);
 	ctx.stroke();
 	return this;
 }
@@ -60,6 +61,22 @@ Plane.prototype.fly = function() {
 Plane.prototype.draw = function() {
 	ctx.fillRect(this.x, this.y, this.w, this.h);
 }
+Plane.prototype.hit = function(m) {
+
+	var len = bullets.length;
+	while (len--) {
+		var b = bullets[len];
+		var isHitX = m.x < b.x && b.x < (m.x + m.size);
+		var isHitY = m.y < b.y && b.y < (m.y + m.size);
+		//console.log('hello', isHitX, isHitY);
+		if (isHitY && isHitX) {
+			console.log(m, b);
+			bullets.splice(len, 1);
+			return true;
+		}
+	}
+	return false;
+}
 
 function Monster(x, y, speed, size) {
 	this.x = x;
@@ -68,8 +85,6 @@ function Monster(x, y, speed, size) {
 	this.size = size;
 }
 Monster.prototype.fly = function(len) {
-	//为什么传入的len有6？
-	//console.log(len);
 	if (this.y > 500) {
 		monsters = []; //删除
 	}
@@ -79,31 +94,26 @@ Monster.prototype.fly = function(len) {
 		this.x -= this.speed;
 	}
 
-	if (this.x > (670 - this.size - 26)) {
-		//console.log(monsters[0])
+	if (this.x > (670 - this.size)) {
 		monsterDirection = 'left';
 		monsterDown = true;
-		//this.x += this.speed;
-	} else if (this.x < 28 + this.size) {
-		var l = monstersNumber - 1;
+	} else if (this.x < 28) {
+		//步数差距补充
+		var l = monsters.length - 1;
 		while (l--) {
 			monsters[l].x -= 2 * this.speed;
 		}
-		//console.log(this, len)
-		//console.log(monsters)
 		monsterDirection = 'right';
 		monsterDown = true;
 	}
 
 	if (monsterDown) {
-		var l = monstersNumber;
+		var l = monsters.length;
 		while (l--) {
 			monsters[l].y += 50;
 		}
 		monsterDown = false;
 	}
-
-
 }
 
 Monster.prototype.draw = function() {
@@ -111,10 +121,15 @@ Monster.prototype.draw = function() {
 
 }
 
+Monster.prototype.boom = function() {
+
+
+}
+
 function monsterInit() {
 	var len = monstersNumber;
 	while (len--) {
-		var a = 76,
+		var a = 26,
 			b = 0,
 			c = 2,
 			d = 50;
@@ -131,6 +146,10 @@ function updateMonsters() {
 		var m = monsters[len];
 		m.fly(len);
 		m.draw();
+		if (plane.hit(m)) {
+			console.log('hitting')
+			monsters.splice(len, 1);
+		}
 	}
 }
 
@@ -222,7 +241,7 @@ function updateKeyBoard() {
 			}
 		}, 1000 / 30);
 		keyboard.pressedSpace = false;
-		var bullet = new Bullet(plane.x, plane.y, 10, 10);
+		var bullet = new Bullet(plane.x + w / 2, plane.y + w / 2, 10, 10);
 		bullets.push(bullet);
 
 	}
@@ -241,7 +260,7 @@ function updateKeyBoard() {
 
 }
 
-var plane = new Plane(325, 525, 50, 50, 5);
+var plane = new Plane(x, y, w, h, speed);
 var keyboard = new keyBoard();
 
 function updateBullets() {
