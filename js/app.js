@@ -3,9 +3,9 @@ window.requestAnimFrame = window.requestAnimationFrame || window.webkitRequestAn
 		window.setTimeout(a, 1000 / 30)
 	};
 
-
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
+ctx.lineWidth = 2;
 
 var x = 325;
 var y = 525;
@@ -17,11 +17,62 @@ var monsters = [];
 var monstersNumber = 7;
 var monsterDirection = 'right';
 var monsterDown = false;
+var planeImg = new Image();
+planeImg.src = "./img/plane.png";
+var monsterImg = new Image();
+monsterImg.src = "./img/monster.png";
+var container = document.getElementById('game');
+var scores = 0;
+var scoreText = document.querySelector(".game-info .score");
 
-ctx.fillStyle = "rgb(200,0,0)";
-ctx.beginPath();
-ctx.fillRect(x, y, w, h);
-ctx.lineWidth = 2;
+setStatus('start');
+
+
+
+function end() {
+	if (scores == monstersNumber) {
+		setStatus("success");
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+	} else if (scores != monstersNumber && (monsters.length == 0 || plane.crash())) {
+		setStatus("failed");
+		monsters = [];
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	}
+}
+
+function renderLevel() {
+
+}
+
+function renderScore() {
+	scoreText.innerHTML = scores;
+}
+
+function setStatus(a) {
+	container.setAttribute("data-status", a);
+
+}
+
+function bindEvents() {
+	var start = document.querySelector('.js-play');
+	var repaly = document.querySelector('.js-replay');
+	var next = document.querySelector('.js-next');
+	start.onclick = function() {
+		setStatus("playing")
+		init();
+		update();
+
+	}
+	repaly.onclick = function() {
+		setStatus("playing")
+		init();
+	}
+	next.onclick = function() {
+		setStatus("playing")
+		init();
+	}
+}
 
 function Bullet(x, y, size, speed) {
 	this.x = x;
@@ -55,11 +106,23 @@ function Plane(x, y, w, h, speed) {
 
 }
 
-Plane.prototype.fly = function() {
-
+Plane.prototype.crash = function() {
+	var len = monsters.length;
+	while (len--) {
+		var m = monsters[len]
+		var isCrashX = m.x < this.x && this.x < (m.x + m.size);
+		var isCrashY = m.y < this.y && this.y < (m.y + m.size);
+		if (isCrashX && isCrashY) {
+			return true;
+		}
+	}
+	return false;
 }
+
+
 Plane.prototype.draw = function() {
-	ctx.fillRect(this.x, this.y, this.w, this.h);
+	//ctx.fillRect(this.x, this.y, this.w, this.h);
+	ctx.drawImage(planeImg, this.x, this.y, this.w, this.h)
 }
 Plane.prototype.hit = function(m) {
 
@@ -68,10 +131,11 @@ Plane.prototype.hit = function(m) {
 		var b = bullets[len];
 		var isHitX = m.x < b.x && b.x < (m.x + m.size);
 		var isHitY = m.y < b.y && b.y < (m.y + m.size);
-		//console.log('hello', isHitX, isHitY);
+
 		if (isHitY && isHitX) {
-			console.log(m, b);
+			//console.log(m, b);
 			bullets.splice(len, 1);
+			scores++;
 			return true;
 		}
 	}
@@ -117,8 +181,9 @@ Monster.prototype.fly = function(len) {
 }
 
 Monster.prototype.draw = function() {
-	ctx.fillRect(this.x, this.y, this.size, this.size);
 
+	//ctx.fillRect(this.x, this.y, this.size, this.size);
+	ctx.drawImage(monsterImg, this.x, this.y, this.size, this.size)
 }
 
 Monster.prototype.boom = function() {
@@ -129,7 +194,7 @@ Monster.prototype.boom = function() {
 function monsterInit() {
 	var len = monstersNumber;
 	while (len--) {
-		var a = 26,
+		var a = 30,
 			b = 0,
 			c = 2,
 			d = 50;
@@ -137,7 +202,7 @@ function monsterInit() {
 		monsters.push(m);
 	}
 }
-monsterInit();
+
 
 function updateMonsters() {
 
@@ -147,14 +212,12 @@ function updateMonsters() {
 		m.fly(len);
 		m.draw();
 		if (plane.hit(m)) {
-			console.log('hitting')
 			monsters.splice(len, 1);
 		}
 	}
 }
 
 function keyBoard() {
-	//console.log(this.keydown)
 	window.onkeydown = this.keydown.bind(this);
 	window.onkeyup = this.keyup.bind(this);
 }
@@ -228,7 +291,7 @@ function updateKeyBoard() {
 	}
 	//长按空格子弹连射
 	if (keyboard.pressedSpaceHeld) {
-		var bullet = new Bullet(plane.x, plane.y, 10, 10);
+		var bullet = new Bullet(plane.x + w / 2, plane.y + w / 2, 10, 10);
 		bullets.push(bullet);
 	}
 	//单按空格子弹单射
@@ -260,8 +323,6 @@ function updateKeyBoard() {
 
 }
 
-var plane = new Plane(x, y, w, h, speed);
-var keyboard = new keyBoard();
 
 function updateBullets() {
 	var len = bullets.length;
@@ -273,7 +334,14 @@ function updateBullets() {
 	}
 }
 
+function init() {
+	plane = new Plane(x, y, w, h, speed);
+	keyboard = new keyBoard();
+	monsterDirection = 'right';
+	scores = 0;
+	monsterInit();
 
+}
 
 function update() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -281,9 +349,11 @@ function update() {
 	updateMonsters();
 	updateBullets();
 	plane.draw();
-
+	renderScore();
+	end()
 	requestAnimFrame(function() {
 		update()
 	})
 }
-update();
+
+bindEvents();
