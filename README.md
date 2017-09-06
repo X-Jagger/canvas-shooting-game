@@ -4,6 +4,8 @@
 - 飞机自由移动
 - 飞机可以单发也可以连发（移动的时候也可以）
 - 有关数
+
+试玩：[canvas-shooting-game](https://x-jagger.github.io/canvas-shooting-game/)
 ### demo-1:
 监听空格与方向键，赋予相应的事件，然后canvas重绘，实现飞机的移动与子弹的射击。
 
